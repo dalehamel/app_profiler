@@ -46,12 +46,11 @@ module AppProfiler
 
     initializer "app_profiler.add_middleware" do |app|
       unless AppProfiler.middleware.disabled
-        #if AppProfiler.viewer == Viewer::SpeedscopeRemoteViewer
-        #  app.middleware.insert_before(0, Viewer::SpeedscopeRemoteViewer::Middleware)
-        #end
-        #if AppProfiler.viewer == Viewer::FirefoxProfileRemoteViewer
-          app.middleware.insert_before(0, Viewer::FirefoxProfileRemoteViewer::Middleware)
-        #end
+        if AppProfiler.viewer == Viewer::SpeedscopeRemoteViewer
+          app.middleware.insert_before(0, Viewer::RemoteViewer::SpeedscopeMiddleware)
+        elsif AppProfiler.viewer == Viewer::FirefoxProfileRemoteViewer
+          app.middleware.insert_before(0, Viewer::RemoteViewer::FirefoxMiddleware)
+        end
         app.middleware.insert_before(0, AppProfiler.middleware)
       end
     end

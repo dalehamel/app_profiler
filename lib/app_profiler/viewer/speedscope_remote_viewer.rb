@@ -18,7 +18,7 @@ module AppProfiler
       end
 
       def view(response: nil, autoredirect: nil, async: false)
-        id = Middleware.id(@profile.file)
+        id = AppProfiler::Viewer::RemoteViewer::SpeedscopeMiddleware.id(@profile.file)
 
         if response && response[0].to_i < 500
           response[1]["Location"] = "/app_profiler/#{id}"

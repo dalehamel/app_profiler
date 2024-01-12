@@ -18,8 +18,7 @@ module AppProfiler
       end
 
       def view(response: nil, autoredirect: nil, async: false)
-        puts @profile.file
-        id = AppProfiler::Viewer::FirefoxProfileRemoteViewer::Middleware.id(@profile.file)
+        id = AppProfiler::Viewer::RemoteViewer::FirefoxMiddleware.id(@profile.file)
 
         if response && response[0].to_i < 500
           response[1]["Location"] = "/app_profiler/viewer/#{id}"
