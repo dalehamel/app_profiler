@@ -2,6 +2,7 @@
 
 require "app_profiler/yarn/command"
 require "app_profiler/yarn/with_speedscope"
+require "app_profiler/viewer/speedscope_remote_viewer/base_middleware"
 
 module AppProfiler
   module Viewer
@@ -22,9 +23,16 @@ module AppProfiler
 
         def viewer(env, path)
           setup_yarn unless yarn_setup
-          env[Rack::PATH_INFO] = path.delete_prefix("/app_profiler")
 
-          speedscope.call(env)
+          if path.ends_with?(".stackprof.json")
+            source = "/app_profiler/speedscope/#{path}"
+            target = "/app_profiler/speedscope/viewer/index.html#profileURL=#{CGI.escape(source)}"
+
+            ["302", { "Location" => target }, []]
+          else
+            env[Rack::PATH_INFO] = path.delete_prefix("/app_profiler/speedscope")
+            speedscope.call(env)
+          end
         end
 
         def show(_env, name)
@@ -32,25 +40,7 @@ module AppProfiler
             id(file) == name
           end || raise(ArgumentError)
 
-          render(
-            <<~HTML
-              <script type="text/javascript">
-                var graph = #{profile.read};
-                var json = JSON.stringify(graph);
-                var blob = new Blob([json], { type: 'text/plain' });
-                var objUrl = encodeURIComponent(URL.createObjectURL(blob));
-                var iframe = document.createElement('iframe');
-
-                document.body.style.margin = '0px';
-                document.body.appendChild(iframe);
-
-                iframe.style.width = '100vw';
-                iframe.style.height = '100vh';
-                iframe.style.border = 'none';
-                iframe.setAttribute('src', '/app_profiler/viewer/index.html#profileURL=' + objUrl + '&title=' + 'Flamegraph for #{name}');
-              </script>
-            HTML
-          )
+          ["200", { "Content-Type" => "application/json" }, [profile.read]]
         end
       end
     end

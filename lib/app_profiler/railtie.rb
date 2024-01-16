@@ -2,6 +2,10 @@
 
 require "rails"
 
+# FIXME: make these auto-loadable
+require "app_profiler/viewer/firefox_remote_viewer/firefox_middleware"
+require "app_profiler/viewer/speedscope_remote_viewer/middleware"
+
 module AppProfiler
   class Railtie < Rails::Railtie
     config.app_profiler = ActiveSupport::OrderedOptions.new
@@ -11,7 +15,6 @@ module AppProfiler
       AppProfiler.logger = app.config.app_profiler.logger || Rails.logger
       AppProfiler.root = app.config.app_profiler.root || Rails.root
       AppProfiler.storage = app.config.app_profiler.storage || Storage::FileStorage
-      AppProfiler.viewer = app.config.app_profiler.viewer || Viewer::FirefoxProfileRemoteViewer# Viewer::SpeedscopeViewer
       AppProfiler.storage.bucket_name = app.config.app_profiler.storage_bucket_name || "profiles"
       AppProfiler.storage.credentials = app.config.app_profiler.storage_credentials || {}
       AppProfiler.middleware = app.config.app_profiler.middleware || Middleware
@@ -46,11 +49,8 @@ module AppProfiler
 
     initializer "app_profiler.add_middleware" do |app|
       unless AppProfiler.middleware.disabled
-        if AppProfiler.viewer == Viewer::SpeedscopeRemoteViewer
-          app.middleware.insert_before(0, Viewer::RemoteViewer::SpeedscopeMiddleware)
-        elsif AppProfiler.viewer == Viewer::FirefoxProfileRemoteViewer
-          app.middleware.insert_before(0, Viewer::RemoteViewer::FirefoxMiddleware)
-        end
+        app.middleware.insert_before(0, Viewer::RemoteViewer::SpeedscopeMiddleware)
+        app.middleware.insert_before(0, Viewer::RemoteViewer::FirefoxMiddleware)
         app.middleware.insert_before(0, AppProfiler.middleware)
       end
     end

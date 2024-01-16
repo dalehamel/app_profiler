@@ -19,7 +19,7 @@ module AppProfiler
         private_constant(:Sanitizer)
 
         def self.id(file)
-          file.basename.to_s.delete_suffix(".json")
+          file.basename.to_s
         end
 
         def initialize(app)
@@ -29,9 +29,7 @@ module AppProfiler
         def call(env)
           request = Rack::Request.new(env)
 
-          return index(env)                        if request.path_info =~ %r(\A/app_profiler/?\z)
-          return viewer(env, Regexp.last_match(1)) if request.path_info =~ %r(\A/app_profiler/viewer/(.*)\z)
-          return show(env, Regexp.last_match(1))   if request.path_info =~ %r(\A/app_profiler/(.*)\z)
+          return index(env) if %r(\A/app_profiler/?\z).match?(request.path_info)
 
           @app.call(env)
         end
@@ -74,14 +72,23 @@ module AppProfiler
           raise NotImplementedError
         end
 
+        def show(env, id)
+          raise NotImplementedError
+        end
+
         def index(_env)
           render(
             (+"").tap do |content|
               content << "<h1>Profiles</h1>"
               profile_files.each do |file|
+                viewer = if file.to_s.end_with?(".gecko.json") # FIXME: read from constant
+                  "firefox"
+                else
+                  "speedscope"
+                end
                 content << <<~HTML
                   <p>
-                    <a href="/app_profiler/#{id(file)}">
+                    <a href="/app_profiler/#{viewer}/viewer/#{id(file)}">
                       #{id(file)}
                     </a>
                   </p>
@@ -89,10 +96,6 @@ module AppProfiler
               end
             end
           )
-        end
-
-        def show(env, id)
-          raise NotImplementedError
         end
       end
 

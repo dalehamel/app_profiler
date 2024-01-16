@@ -16,13 +16,20 @@ module AppProfiler
       query_param("async")
     end
 
+    def backend
+      query_param("backend") || profile_header_param("backend") ||
+        AppProfiler.profiler_backend.name.split("::").last.downcase.gsub("backend", "")
+    end
+
     def valid?
       if mode.blank?
         return false
       end
 
-      if defined?(AppProfiler::VernierBackend) &&
-          AppProfiler.profiler_backend == AppProfiler::VernierBackend &&
+      return false if backend == "vernier" && !defined?(AppProfiler::VernierBackend)
+
+      # FIXME: this is very lazy validation for vernier
+      if backend == "vernier" &&
           AppProfiler::VernierBackend::AVAILABLE_MODES.include?(mode.to_sym)
         return true
       end

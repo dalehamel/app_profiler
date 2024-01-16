@@ -21,7 +21,7 @@ module AppProfiler
         id = AppProfiler::Viewer::RemoteViewer::FirefoxMiddleware.id(@profile.file)
 
         if response && response[0].to_i < 500
-          response[1]["Location"] = "/app_profiler/viewer/#{id}"
+          response[1]["Location"] = "/app_profiler/firefox/viewer/#{id}"
           response[0] = 303
         else
           AppProfiler.logger.info("[Profiler] Profile available at /app_profiler/#{id}\n")

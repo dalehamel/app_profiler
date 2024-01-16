@@ -14,7 +14,8 @@ module AppProfiler
 
         patch_firefox_profiler
         yarn("--cwd", "node_modules/firefox-profiler", "build-prod")
-        patch_file("node_modules/firefox-profiler/dist/index.html", 'href="locales/en-US/app.ftl"', 'href="/app_profiler/viewer/locales/en-US/app.ftl"')
+        patch_file("node_modules/firefox-profiler/dist/index.html", 'href="locales/en-US/app.ftl"',
+          'href="/app_profiler/firefox/viewer/locales/en-US/app.ftl"')
       end
 
       private
@@ -24,8 +25,8 @@ module AppProfiler
       end
 
       def fetch_firefox_profiler
-        puts AppProfiler.gecko_viewer_package
         raise ArgumentError unless AppProfiler.gecko_viewer_package.start_with?("https://github.com")
+
         Dir.mktmpdir do |dir|
           Dir.chdir(dir) do
             system("git clone #{AppProfiler.gecko_viewer_package} firefox-profiler")
@@ -41,8 +42,10 @@ module AppProfiler
 
       def patch_firefox_profiler
         # Patch the publicPath so that the app can be "mounted" at the right location
-        patch_file("node_modules/firefox-profiler/webpack.config.js", "publicPath: '/'", "publicPath: '/app_profiler/viewer/'")
-        patch_file("node_modules/firefox-profiler/src/app-logic/l10n.js", "fetch(`/locales/", "fetch(`/app_profiler/viewer/locales/")
+        patch_file("node_modules/firefox-profiler/webpack.config.js", "publicPath: '/'",
+          "publicPath: '/app_profiler/firefox/viewer/'")
+        patch_file("node_modules/firefox-profiler/src/app-logic/l10n.js", "fetch(`/locales/",
+          "fetch(`/app_profiler/firefox/viewer/locales/")
       end
 
       def patch_file(file, find, replace)

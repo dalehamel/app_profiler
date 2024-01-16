@@ -12,7 +12,7 @@ module AppProfiler
         ["yarn", "init", "--yes"],
         ["yarn", "add", "speedscope", "--dev", "--ignore-workspace-root-check"],
         ["yarn", "run", "speedscope", /.*\.json/],
-        ["yarn", "add", /.*\/firefox-profiler/],
+        ["yarn", "add", %r{.*/firefox-profiler}],
         ["yarn", "--cwd", "node_modules/firefox-profiler"],
         ["yarn", "--cwd", "node_modules/firefox-profiler", "build-prod"],
       ]

@@ -25,9 +25,7 @@ module AppProfiler
 
   module Viewer
     autoload :BaseViewer, "app_profiler/viewer/base_viewer"
-    autoload :SpeedscopeViewer, "app_profiler/viewer/speedscope_viewer"
     autoload :SpeedscopeRemoteViewer, "app_profiler/viewer/speedscope_remote_viewer"
-    autoload :FirefoxProfileViewer, "app_profiler/viewer/firefox_profile_viewer"
     autoload :FirefoxProfileRemoteViewer, "app_profiler/viewer/firefox_profile_remote_viewer"
   end
 
@@ -53,7 +51,6 @@ module AppProfiler
 
   mattr_accessor :gecko_viewer_package, default: "https://github.com/firefox-devtools/profiler"
   mattr_accessor :storage, default: Storage::FileStorage
-  mattr_accessor :viewer, default: Viewer::FirefoxProfileRemoteViewer#Viewer::SpeedscopeViewer
   mattr_accessor :middleware, default: Middleware
   mattr_accessor :server, default: Server
   mattr_accessor :upload_queue_max_length, default: 10
@@ -75,6 +72,10 @@ module AppProfiler
     def stop
       profiler.stop
       profiler.results
+    end
+
+    def running?
+      @backend&.running?
     end
 
     def profiler

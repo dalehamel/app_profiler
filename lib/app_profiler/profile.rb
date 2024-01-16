@@ -35,16 +35,6 @@ module AppProfiler
       @data    = data
     end
 
-    def view(params = {})
-      # HACK: - we should have a better way of toggling this
-      if defined?(AppProfiler::VernierBackend) &&
-          AppProfiler.profiler_backend == AppProfiler::VernierBackend
-        AppProfiler.viewer = Viewer::FirefoxProfileRemoteViewer
-      end
-
-      AppProfiler.viewer.view(self, **params)
-    end
-
     def upload
       AppProfiler.storage.upload(self).tap do |upload|
         if upload && defined?(upload.url)
@@ -84,6 +74,14 @@ module AppProfiler
       raise NotImplementedError
     end
 
+    def format
+      raise NotImplementedError
+    end
+
+    def view(params = {})
+      raise NotImplementedError
+    end
+
     private
 
     def path
@@ -92,7 +90,7 @@ module AppProfiler
         mode,
         id,
         Socket.gethostname,
-      ].compact.join("-") << ".json"
+      ].compact.join("-") << format
 
       raise UnsafeFilename if /[^0-9A-Za-z.\-\_]/.match?(filename)
 
@@ -120,6 +118,14 @@ module AppProfiler
 
     def mode
       @data[:mode]
+    end
+
+    def format
+      ".stackprof.json"
+    end
+
+    def view(params = {})
+      AppProfiler::Viewer::SpeedscopeRemoteViewer.view(self, **params)
     end
   end
 
@@ -151,6 +157,14 @@ module AppProfiler
 
     def mode
       @meta[:mode]
+    end
+
+    def format
+      ".gecko.json"
+    end
+
+    def view(params = {})
+      AppProfiler::Viewer::FirefoxProfileRemoteViewer.view(self, **params)
     end
   end
 end
