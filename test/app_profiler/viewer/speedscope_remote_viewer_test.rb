@@ -16,7 +16,7 @@ module AppProfiler
         profile = StackprofProfile.new(stackprof_profile)
 
         viewer = SpeedscopeRemoteViewer.new(profile)
-        id = SpeedscopeRemoteViewer::Middleware.id(profile.file)
+        id = RemoteViewer::SpeedscopeMiddleware.id(profile.file)
 
         AppProfiler.logger.expects(:info).with(
           "[Profiler] Profile available at /app_profiler/#{id}\n"
@@ -30,12 +30,12 @@ module AppProfiler
         profile = StackprofProfile.new(stackprof_profile)
 
         viewer = SpeedscopeRemoteViewer.new(profile)
-        id = SpeedscopeRemoteViewer::Middleware.id(profile.file)
+        id = RemoteViewer::SpeedscopeMiddleware.id(profile.file)
 
         viewer.view(response: response)
 
         assert_equal(303, response[0])
-        assert_equal("/app_profiler/#{id}", response[1]["Location"])
+        assert_equal("/app_profiler/speedscope/viewer/#{id}", response[1]["Location"])
       end
     end
   end

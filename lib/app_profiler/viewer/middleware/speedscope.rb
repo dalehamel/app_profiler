@@ -33,11 +33,11 @@ module AppProfiler
         def viewer(env, path)
           setup_yarn unless yarn_setup
 
-          if path.ends_with?(".stackprof.json")
+          if path.end_with?(".stackprof.json")
             source = "/app_profiler/speedscope/#{path}"
             target = "/app_profiler/speedscope/viewer/index.html#profileURL=#{CGI.escape(source)}"
 
-            ["302", { "Location" => target }, []]
+            [302, { "Location" => target }, []]
           else
             env[Rack::PATH_INFO] = path.delete_prefix("/app_profiler/speedscope")
             speedscope.call(env)
@@ -49,7 +49,7 @@ module AppProfiler
             id(file) == name
           end || raise(ArgumentError)
 
-          ["200", { "Content-Type" => "application/json" }, [profile.read]]
+          [200, { "Content-Type" => "application/json" }, [profile.read]]
         end
       end
     end

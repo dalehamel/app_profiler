@@ -84,8 +84,7 @@ module AppProfiler
     test "#view" do
       profile = StackprofProfile.new(stackprof_profile)
 
-      AppProfiler.stubs(:viewer).returns(Viewer::SpeedscopeViewer)
-      Viewer::SpeedscopeViewer.expects(:view).with(profile)
+      Viewer::SpeedscopeRemoteViewer.expects(:view).with(profile)
 
       profile.view
     end
