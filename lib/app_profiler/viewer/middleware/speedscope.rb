@@ -2,12 +2,12 @@
 
 require "app_profiler/yarn/command"
 require "app_profiler/yarn/with_speedscope"
-require "app_profiler/viewer/speedscope_remote_viewer/base_middleware"
+require "app_profiler/viewer/middleware/base"
 
 module AppProfiler
   module Viewer
     class RemoteViewer < BaseViewer
-      class SpeedscopeMiddleware < SpeedscopeBaseMiddleware
+      class SpeedscopeMiddleware < BaseMiddleware
         include Yarn::WithSpeedscope
 
         def initialize(app)
@@ -15,6 +15,15 @@ module AppProfiler
           @speedscope = Rack::File.new(
             File.join(AppProfiler.root, "node_modules/speedscope/dist/release")
           )
+        end
+
+        def call(env)
+          request = Rack::Request.new(env)
+          @app.call(env) if request.path_info.end_with?(".gecko.json")
+          return viewer(env, Regexp.last_match(1)) if request.path_info =~ %r(\A/app_profiler/speedscope/viewer/(.*)\z)
+          return show(env, Regexp.last_match(1))   if request.path_info =~ %r(\A/app_profiler/speedscope/(.*)\z)
+
+          super
         end
 
         protected

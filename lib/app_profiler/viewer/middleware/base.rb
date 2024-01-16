@@ -6,7 +6,7 @@ require "rails-html-sanitizer"
 module AppProfiler
   module Viewer
     class RemoteViewer < BaseViewer
-      class RemoteBaseMiddleware
+      class BaseMiddleware
         class Sanitizer < Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer
           self.allowed_tags = Set.new([
             "strong", "em", "b", "i", "p", "code", "pre", "tt", "samp", "kbd", "var", "sub",
@@ -99,7 +99,7 @@ module AppProfiler
         end
       end
 
-      private_constant(:RemoteBaseMiddleware)
+      private_constant(:BaseMiddleware)
     end
   end
 end

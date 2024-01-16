@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "app_profiler/viewer/firefox_remote_viewer/base_middleware"
-require "app_profiler/viewer/firefox_remote_viewer/firefox_middleware"
+require "app_profiler/viewer/middleware/firefox"
 
 module AppProfiler
   module Viewer

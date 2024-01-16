@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "app_profiler/viewer/speedscope_remote_viewer/base_middleware"
-require "app_profiler/viewer/speedscope_remote_viewer/middleware"
+require "app_profiler/viewer/middleware/speedscope"
 
 module AppProfiler
   module Viewer

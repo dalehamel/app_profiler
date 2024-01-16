@@ -3,8 +3,8 @@
 require "rails"
 
 # FIXME: make these auto-loadable
-require "app_profiler/viewer/firefox_remote_viewer/firefox_middleware"
-require "app_profiler/viewer/speedscope_remote_viewer/middleware"
+require "app_profiler/viewer/middleware/firefox"
+require "app_profiler/viewer/middleware/speedscope"
 
 module AppProfiler
   class Railtie < Rails::Railtie
