@@ -29,7 +29,7 @@ module AppProfiler
     test ".run raises when yield raises" do
       error = StandardError.new("An error occurred.")
       exception = assert_raises(StandardError) do
-        AppProfiler.profiler.run(vernier_profile) do
+        AppProfiler.profiler.run(vernier_params) do
           assert_predicate(AppProfiler.profiler, :running?)
           raise error
         end
@@ -42,9 +42,9 @@ module AppProfiler
     test ".run does not stop the profiler when it is already running" do
       AppProfiler.logger.expects(:info).never
 
-      assert_equal(true, AppProfiler.profiler.send(:start, vernier_profile))
+      assert_equal(true, AppProfiler.profiler.send(:start, vernier_params))
 
-      profile = AppProfiler.profiler.run(vernier_profile) do
+      profile = AppProfiler.profiler.run(vernier_params) do
         sleep(0.1)
       end
 
@@ -65,7 +65,7 @@ module AppProfiler
     end
 
     test ".run assigns metadata to profiles" do
-      profile = AppProfiler.profiler.run(vernier_profile(metadata: { id: "wowza", context: "bar" })) do
+      profile = AppProfiler.profiler.run(vernier_params(metadata: { id: "wowza", context: "bar" })) do
         sleep(0.1)
       end
 
@@ -76,7 +76,7 @@ module AppProfiler
 
     test ".run cpu profile" do
       skip "on-CPU mode not yet supported by vernier" # https://github.com/jhawthorn/vernier/issues/29
-      profile = AppProfiler.profiler.run(vernier_profile(mode: :cpu, interval: 2000)) do
+      profile = AppProfiler.profiler.run(vernier_params(mode: :cpu, interval: 2000)) do
         sleep(0.1)
       end
 
@@ -86,7 +86,7 @@ module AppProfiler
     end
 
     test ".run wall profile" do
-      profile = AppProfiler.profiler.run(vernier_profile(mode: :wall, interval: 2000)) do
+      profile = AppProfiler.profiler.run(vernier_params(mode: :wall, interval: 2000)) do
         sleep(0.1)
       end
 
@@ -97,7 +97,7 @@ module AppProfiler
 
     test ".run object profile" do
       skip "object allocation mode not yet supported by vernier"
-      profile = AppProfiler.profiler.run(vernier_profile(mode: :object, interval: 2)) do
+      profile = AppProfiler.profiler.run(vernier_params(mode: :object, interval: 2)) do
         sleep(0.1)
       end
 
@@ -109,7 +109,7 @@ module AppProfiler
     test ".run retained profile" do
       retained = []
       objects = 10
-      profile = AppProfiler.profiler.run(vernier_profile(mode: :retained)) do
+      profile = AppProfiler.profiler.run(vernier_params(mode: :retained)) do
         objects.times do
           retained << Object.new
         end
@@ -126,12 +126,12 @@ module AppProfiler
     end
 
     test ".run works for supported modes" do
-      profile = AppProfiler.profiler.run(vernier_profile(mode: :wall)) do
+      profile = AppProfiler.profiler.run(vernier_params(mode: :wall)) do
         sleep(0.1)
       end
       refute_equal(false, profile)
 
-      profile = AppProfiler.profiler.run(vernier_profile(mode: :retained)) do
+      profile = AppProfiler.profiler.run(vernier_params(mode: :retained)) do
         sleep(0.1)
       end
       refute_equal(false, profile)
@@ -141,7 +141,7 @@ module AppProfiler
       unsupported_modes = [:cpu, :object, :garbage, :unsupported]
 
       unsupported_modes.each do |unsupported|
-        profile = AppProfiler.profiler.run(vernier_profile(mode: unsupported)) do
+        profile = AppProfiler.profiler.run(vernier_params(mode: unsupported)) do
           sleep(0.1)
         end
         assert_nil(profile)
@@ -160,7 +160,7 @@ module AppProfiler
     end
 
     test ".start assigns metadata to profiles" do
-      AppProfiler.profiler.start(vernier_profile(metadata: { id: "wowza", context: "bar" }))
+      AppProfiler.profiler.start(vernier_params(metadata: { id: "wowza", context: "bar" }))
       AppProfiler.profiler.stop
 
       profile = AppProfiler.profiler.results
@@ -183,7 +183,7 @@ module AppProfiler
     end
 
     test ".start wall profile" do
-      AppProfiler.profiler.start(vernier_profile(mode: :wall, interval: 2000))
+      AppProfiler.profiler.start(vernier_params(mode: :wall, interval: 2000))
       AppProfiler.profiler.stop
 
       profile = AppProfiler.profiler.results
@@ -195,7 +195,7 @@ module AppProfiler
 
     test ".start object profile" do
       skip "object allocation mode not yet supported by vernier"
-      AppProfiler.profiler.start(vernier_profile(mode: :object, interval: 2))
+      AppProfiler.profiler.start(vernier_params(mode: :object, interval: 2))
       AppProfiler.profiler.stop
 
       profile = AppProfiler.profiler.results

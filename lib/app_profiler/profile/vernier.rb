@@ -26,7 +26,7 @@ module AppProfiler
     end
 
     def to_h
-      nil
+      @data.to_h
     end
 
     def mode

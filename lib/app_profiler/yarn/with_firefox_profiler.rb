@@ -29,7 +29,7 @@ module AppProfiler
 
         Dir.mktmpdir do |dir|
           Dir.chdir(dir) do
-            system("git clone #{AppProfiler.gecko_viewer_package} firefox-profiler")
+            system("git", "clone", AppProfiler.gecko_viewer_package.to_s, "firefox-profiler")
             package_contents = File.read("firefox-profiler/package.json")
             package_json = JSON.parse(package_contents)
             package_json["name"] ||= "firefox-profiler"

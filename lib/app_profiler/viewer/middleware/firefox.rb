@@ -35,14 +35,14 @@ module AppProfiler
         def viewer(env, path)
           setup_yarn unless yarn_setup
 
-          if path.ends_with?(AppProfiler::VernierProfile::FILE_EXTENSION)
+          if path.end_with?(AppProfiler::VernierProfile::FILE_EXTENSION)
             proto = env["rack.url_scheme"]
             host = env["HTTP_HOST"]
             source = "#{proto}://#{host}/app_profiler/firefox/#{path}"
 
             target = "/from-url/#{CGI.escape(source)}"
 
-            ["302", { "Location" => target }, []]
+            [302, { "Location" => target }, []]
           else
             env[Rack::PATH_INFO] = path.delete_prefix("/app_profiler")
             firefox_profiler.call(env)
@@ -52,7 +52,7 @@ module AppProfiler
         def from(env, path)
           setup_yarn unless yarn_setup
           index = File.read(File.join(AppProfiler.root, "node_modules/firefox-profiler/dist/index.html"))
-          ["200", { "Content-Type" => "text/html" }, [index]]
+          [200, { "Content-Type" => "text/html" }, [index]]
         end
 
         def show(_env, name)
@@ -60,7 +60,7 @@ module AppProfiler
             id(file) == name
           end || raise(ArgumentError)
 
-          ["200", { "Content-Type" => "application/json" }, [profile.read]]
+          [200, { "Content-Type" => "application/json" }, [profile.read]]
         end
       end
     end
