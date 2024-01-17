@@ -37,6 +37,24 @@ AppProfiler.tap do |config|
   config.profile_root = TMP_ROOT
 end
 
+module Vernier
+  class FakeResult
+    attr_accessor :meta
+
+    def initialize(meta)
+      @meta = meta
+    end
+
+    def to_h
+      { meta: @meta }
+    end
+
+    def write(out:)
+      File.write(out, JSON.dump(to_h))
+    end
+  end
+end
+
 module AppProfiler
   class Dummy < Rails::Application; end
 
@@ -54,6 +72,10 @@ module AppProfiler
     end
 
     def vernier_profile(params = {})
+      ::Vernier::FakeResult.new(params)
+    end
+
+    def vernier_params(params = {})
       { mode: :wall }.merge(params)
     end
 

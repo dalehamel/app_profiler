@@ -12,9 +12,9 @@ module AppProfiler
         ["yarn", "init", "--yes"],
         ["yarn", "add", "speedscope", "--dev", "--ignore-workspace-root-check"],
         ["yarn", "run", "speedscope", /.*\.json/],
-        ["yarn", "add", GECKO_VIEWER_PACKAGE],
+        ["yarn", "add", %r{.*/firefox-profiler}],
         ["yarn", "--cwd", "node_modules/firefox-profiler"],
-        ["yarn", "--cwd", "node_modules/firefox-profiler", "start", "-k", "1000", /.*\.(json|json\.gz|gecko)\z/],
+        ["yarn", "--cwd", "node_modules/firefox-profiler", "build-prod"],
       ]
 
       private_constant(:VALID_COMMANDS)
@@ -44,12 +44,6 @@ module AppProfiler
       end
 
       def valid_command?(command)
-        # Allow gecko viewer package to be overridden by railtie by detecting
-        # if it was changed from the default
-        if AppProfiler.gecko_viewer_package != GECKO_VIEWER_PACKAGE &&
-            !VALID_COMMANDS.include?(["yarn", "add", AppProfiler.gecko_viewer_package])
-          VALID_COMMANDS.append(["yarn", "add", AppProfiler.gecko_viewer_package])
-        end
         VALID_COMMANDS.any? do |valid_command|
           valid_command.zip(command).all? do |valid_part, part|
             part.match?(valid_part)

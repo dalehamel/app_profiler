@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module AppProfiler
+  autoload :StackprofProfile, "app_profiler/profile/stackprof"
+  autoload :VernierProfile, "app_profiler/profile/vernier"
+
   class Profile
     INTERNAL_METADATA_KEYS = [:id, :context]
     private_constant :INTERNAL_METADATA_KEYS
@@ -33,16 +36,6 @@ module AppProfiler
       @id      = id.presence || SecureRandom.hex
       @context = context
       @data    = data
-    end
-
-    def view(params = {})
-      # HACK: - we should have a better way of toggling this
-      if defined?(AppProfiler::VernierBackend) &&
-          AppProfiler.profiler_backend == AppProfiler::VernierBackend
-        AppProfiler.viewer = Viewer::FirefoxProfileViewer
-      end
-
-      AppProfiler.viewer.view(self, **params)
     end
 
     def upload
@@ -84,6 +77,14 @@ module AppProfiler
       raise NotImplementedError
     end
 
+    def format
+      raise NotImplementedError
+    end
+
+    def view(params = {})
+      raise NotImplementedError
+    end
+
     private
 
     def path
@@ -92,65 +93,11 @@ module AppProfiler
         mode,
         id,
         Socket.gethostname,
-      ].compact.join("-") << ".json"
+      ].compact.join("-") << format
 
       raise UnsafeFilename if /[^0-9A-Za-z.\-\_]/.match?(filename)
 
       AppProfiler.profile_root.join(filename)
-    end
-  end
-
-  class StackprofProfile < Profile
-    delegate :[], to: :@data
-
-    def file
-      @file ||= path.tap do |p|
-        p.dirname.mkpath
-        p.write(JSON.dump(@data))
-      end
-    end
-
-    def to_h
-      @data
-    end
-
-    def valid?
-      mode.present?
-    end
-
-    def mode
-      @data[:mode]
-    end
-  end
-
-  class VernierProfile < Profile
-    delegate :[], to: :@meta
-
-    attr_reader :data
-
-    def initialize(data, id: nil, context: nil)
-      @meta = data.meta
-      super
-    end
-
-    # https://github.com/jhawthorn/vernier/blob/main/lib/vernier/result.rb#L27-L29
-    def file
-      @file ||= path.tap do |p|
-        p.dirname.mkpath
-        @data.write(out: p)
-      end
-    end
-
-    def valid?
-      !@data.nil?
-    end
-
-    def to_h
-      nil
-    end
-
-    def mode
-      @meta[:mode]
     end
   end
 end
