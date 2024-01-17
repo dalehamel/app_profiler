@@ -4,10 +4,10 @@ require "test_helper"
 
 module AppProfiler
   module Viewer
-    class SpeedscopeRemoteViewer
+    class SpeedscopeViewer
       class MiddlewareTest < TestCase
         setup do
-          @app = AppProfiler::Viewer::RemoteViewer::SpeedscopeMiddleware.new(
+          @app = Middleware.new(
             proc { [200, { "Content-Type" => "text/plain" }, ["Hello world!"]] }
           )
         end
@@ -16,7 +16,7 @@ module AppProfiler
           profile = StackprofProfile.new(stackprof_profile)
           profile_id = profile.file.basename.to_s
 
-          assert_equal(profile_id, AppProfiler::Viewer::RemoteViewer::SpeedscopeMiddleware.id(profile.file))
+          assert_equal(profile_id, Middleware.id(profile.file))
         end
 
         test "#call index" do
@@ -29,7 +29,7 @@ module AppProfiler
           assert_equal({ "Content-Type" => "text/html" }, content_type)
           assert_match(%r(<title>App Profiler</title>), html)
           profiles.each do |profile|
-            id = AppProfiler::Viewer::RemoteViewer::SpeedscopeMiddleware.id(profile.file)
+            id = Middleware.id(profile.file)
             assert_match(
               %r(<a href="/app_profiler/speedscope/viewer/#{id}">), html
             )
@@ -46,7 +46,7 @@ module AppProfiler
           assert_equal({ "Content-Type" => "text/html" }, content_type)
           assert_match(%r(<title>App Profiler</title>), html)
           profiles.each do |profile|
-            id = AppProfiler::Viewer::RemoteViewer::SpeedscopeMiddleware.id(profile.file)
+            id = Middleware.id(profile.file)
             assert_match(
               %r(<a href="/app_profiler/speedscope/viewer/#{id}">), html
             )
@@ -55,7 +55,7 @@ module AppProfiler
 
         test "#call show" do
           profile = StackprofProfile.new(stackprof_profile)
-          id = AppProfiler::Viewer::RemoteViewer::SpeedscopeMiddleware.id(profile.file)
+          id = Middleware.id(profile.file)
 
           code, content_type, body = @app.call({ "PATH_INFO" => "/app_profiler/speedscope/#{id}" })
 

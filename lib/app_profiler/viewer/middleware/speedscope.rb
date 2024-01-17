@@ -2,12 +2,11 @@
 
 require "app_profiler/yarn/command"
 require "app_profiler/yarn/with_speedscope"
-require "app_profiler/viewer/middleware/base"
 
 module AppProfiler
   module Viewer
-    class RemoteViewer < BaseViewer
-      class SpeedscopeMiddleware < BaseMiddleware
+    class SpeedscopeViewer < BaseViewer
+      class Middleware < BaseMiddleware
         include Yarn::WithSpeedscope
 
         def initialize(app)

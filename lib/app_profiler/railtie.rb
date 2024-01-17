@@ -3,8 +3,8 @@
 require "rails"
 
 # FIXME: make these auto-loadable
-require "app_profiler/viewer/middleware/firefox"
-require "app_profiler/viewer/middleware/speedscope"
+# require "app_profiler/viewer/middleware/firefox"
+# require "app_profiler/viewer/middleware/speedscope"
 
 module AppProfiler
   class Railtie < Rails::Railtie
@@ -49,8 +49,8 @@ module AppProfiler
 
     initializer "app_profiler.add_middleware" do |app|
       unless AppProfiler.middleware.disabled
-        app.middleware.insert_before(0, Viewer::RemoteViewer::SpeedscopeMiddleware)
-        app.middleware.insert_before(0, Viewer::RemoteViewer::FirefoxMiddleware)
+        app.middleware.insert_before(0, Viewer::SpeedscopeViewer::Middleware)
+        app.middleware.insert_before(0, Viewer::FirefoxViewer::Middleware)
         app.middleware.insert_before(0, AppProfiler.middleware)
       end
     end

@@ -125,7 +125,7 @@ module AppProfiler
     end
 
     def view(params = {})
-      AppProfiler::Viewer::SpeedscopeRemoteViewer.view(self, **params)
+      AppProfiler::Viewer::SpeedscopeViewer.view(self, **params)
     end
   end
 
@@ -164,7 +164,7 @@ module AppProfiler
     end
 
     def view(params = {})
-      AppProfiler::Viewer::FirefoxProfileRemoteViewer.view(self, **params)
+      AppProfiler::Viewer::FirefoxViewer.view(self, **params)
     end
   end
 end

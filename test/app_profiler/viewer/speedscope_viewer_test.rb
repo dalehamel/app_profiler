@@ -4,19 +4,19 @@ require "test_helper"
 
 module AppProfiler
   module Viewer
-    class SpeedscopeRemoteViewerTest < TestCase
+    class SpeedscopeViewerTest < TestCase
       test ".view initializes and calls #view" do
-        SpeedscopeRemoteViewer.any_instance.expects(:view)
+        SpeedscopeViewer.any_instance.expects(:view)
 
         profile = StackprofProfile.new(stackprof_profile)
-        SpeedscopeRemoteViewer.view(profile)
+        SpeedscopeViewer.view(profile)
       end
 
       test "#view logs middleware URL" do
         profile = StackprofProfile.new(stackprof_profile)
 
-        viewer = SpeedscopeRemoteViewer.new(profile)
-        id = RemoteViewer::SpeedscopeMiddleware.id(profile.file)
+        viewer = SpeedscopeViewer.new(profile)
+        id = SpeedscopeViewer::Middleware.id(profile.file)
 
         AppProfiler.logger.expects(:info).with(
           "[Profiler] Profile available at /app_profiler/#{id}\n"
@@ -29,8 +29,8 @@ module AppProfiler
         response = [200, {}, ["OK"]]
         profile = StackprofProfile.new(stackprof_profile)
 
-        viewer = SpeedscopeRemoteViewer.new(profile)
-        id = RemoteViewer::SpeedscopeMiddleware.id(profile.file)
+        viewer = SpeedscopeViewer.new(profile)
+        id = SpeedscopeViewer::Middleware.id(profile.file)
 
         viewer.view(response: response)
 
