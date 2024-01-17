@@ -18,7 +18,7 @@ module AppProfiler
 
         def call(env)
           request = Rack::Request.new(env)
-          @app.call(env) if request.path_info.end_with?(".stackprof.json")
+          @app.call(env) if request.path_info.end_with?(AppProfiler::StackprofProfile::FILE_EXTENSION)
           # Firefox profiler *really* doesn't like for /from-url/ to be at any other mount point
           # so with this enabled, we take over both /app_profiler and /from-url in the app in development.
           return from(env, Regexp.last_match(1))   if request.path_info =~ %r(\A/from-url(.*)\z)
@@ -35,7 +35,7 @@ module AppProfiler
         def viewer(env, path)
           setup_yarn unless yarn_setup
 
-          if path.ends_with?(".gecko.json")
+          if path.ends_with?(AppProfiler::VernierProfile::FILE_EXTENSION)
             proto = env["rack.url_scheme"]
             host = env["HTTP_HOST"]
             source = "#{proto}://#{host}/app_profiler/firefox/#{path}"

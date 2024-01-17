@@ -2,10 +2,6 @@
 
 require "rails"
 
-# FIXME: make these auto-loadable
-# require "app_profiler/viewer/middleware/firefox"
-# require "app_profiler/viewer/middleware/speedscope"
-
 module AppProfiler
   class Railtie < Rails::Railtie
     config.app_profiler = ActiveSupport::OrderedOptions.new

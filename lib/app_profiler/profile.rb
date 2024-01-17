@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module AppProfiler
+  autoload :StackprofProfile, "app_profiler/profile/stackprof"
+  autoload :VernierProfile, "app_profiler/profile/vernier"
+
   class Profile
     INTERNAL_METADATA_KEYS = [:id, :context]
     private_constant :INTERNAL_METADATA_KEYS
@@ -95,76 +98,6 @@ module AppProfiler
       raise UnsafeFilename if /[^0-9A-Za-z.\-\_]/.match?(filename)
 
       AppProfiler.profile_root.join(filename)
-    end
-  end
-
-  class StackprofProfile < Profile
-    delegate :[], to: :@data
-
-    def file
-      @file ||= path.tap do |p|
-        p.dirname.mkpath
-        p.write(JSON.dump(@data))
-      end
-    end
-
-    def to_h
-      @data
-    end
-
-    def valid?
-      mode.present?
-    end
-
-    def mode
-      @data[:mode]
-    end
-
-    def format
-      ".stackprof.json"
-    end
-
-    def view(params = {})
-      AppProfiler::Viewer::SpeedscopeViewer.view(self, **params)
-    end
-  end
-
-  class VernierProfile < Profile
-    delegate :[], to: :@meta
-
-    attr_reader :data
-
-    def initialize(data, id: nil, context: nil)
-      @meta = data.meta
-      super
-    end
-
-    # https://github.com/jhawthorn/vernier/blob/main/lib/vernier/result.rb#L27-L29
-    def file
-      @file ||= path.tap do |p|
-        p.dirname.mkpath
-        @data.write(out: p)
-      end
-    end
-
-    def valid?
-      !@data.nil?
-    end
-
-    def to_h
-      nil
-    end
-
-    def mode
-      @meta[:mode]
-    end
-
-    def format
-      ".gecko.json"
-    end
-
-    def view(params = {})
-      AppProfiler::Viewer::FirefoxViewer.view(self, **params)
     end
   end
 end

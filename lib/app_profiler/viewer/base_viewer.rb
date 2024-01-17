@@ -91,7 +91,7 @@ module AppProfiler
             (+"").tap do |content|
               content << "<h1>Profiles</h1>"
               profile_files.each do |file|
-                viewer = if file.to_s.end_with?(".gecko.json") # FIXME: read from constant
+                viewer = if file.to_s.end_with?(AppProfiler::VernierProfile::FILE_EXTENSION) # FIXME: read from constant
                   "firefox"
                 else
                   "speedscope"

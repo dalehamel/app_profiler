@@ -18,7 +18,7 @@ module AppProfiler
 
         def call(env)
           request = Rack::Request.new(env)
-          @app.call(env) if request.path_info.end_with?(".gecko.json")
+          @app.call(env) if request.path_info.end_with?(AppProfiler::VernierProfile::FILE_EXTENSION)
           return viewer(env, Regexp.last_match(1)) if request.path_info =~ %r(\A/app_profiler/speedscope/viewer/(.*)\z)
           return show(env, Regexp.last_match(1))   if request.path_info =~ %r(\A/app_profiler/speedscope/(.*)\z)
 
@@ -32,7 +32,7 @@ module AppProfiler
         def viewer(env, path)
           setup_yarn unless yarn_setup
 
-          if path.end_with?(".stackprof.json")
+          if path.end_with?(AppProfiler::StackprofProfile::FILE_EXTENSION)
             source = "/app_profiler/speedscope/#{path}"
             target = "/app_profiler/speedscope/viewer/index.html#profileURL=#{CGI.escape(source)}"
 
