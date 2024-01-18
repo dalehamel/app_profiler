@@ -3,7 +3,7 @@
 require "test_helper"
 
 module AppProfiler
-  class ProfileTest < TestCase
+  class StackprofProfileTest < TestCase
     test ".from_stackprof raises ArgumentError when mode is not present" do
       error = assert_raises(ArgumentError) do
         profile_without_mode = stackprof_profile.tap { |data| data.delete(:mode) }
@@ -122,13 +122,6 @@ module AppProfiler
       profile.file.delete
 
       assert_not_predicate(profile.file, :exist?)
-    end
-
-    test "#to_h returns profile data" do
-      profile_data = stackprof_profile
-      profile      = StackprofProfile.new(profile_data)
-
-      assert_equal(profile_data, profile.to_h)
     end
 
     test "#[] forwards to profile data" do

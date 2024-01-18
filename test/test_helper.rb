@@ -39,14 +39,18 @@ end
 
 module Vernier
   class FakeResult
-    attr_accessor :meta
+    attr_accessor :meta, :data
 
-    def initialize(meta)
-      @meta = meta
+    def initialize(data)
+      @meta = data.delete(:metadata) || {}
+      @data = data
     end
 
     def to_h
-      { meta: @meta }
+      {
+        meta: @meta,
+        data: @data,
+      }
     end
 
     def write(out:)
@@ -76,7 +80,7 @@ module AppProfiler
     end
 
     def vernier_params(params = {})
-      { mode: :wall }.merge(params)
+      { mode: :wall, interval: 1000, metadata: { id: "foo" } }.merge(params)
     end
 
     def with_yarn_setup
