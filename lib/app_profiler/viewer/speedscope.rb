@@ -5,6 +5,8 @@ require "app_profiler/viewer/middleware/speedscope"
 module AppProfiler
   module Viewer
     class SpeedscopeViewer < BaseViewer
+      NAME = "speedscope"
+
       class << self
         def view(profile, params = {})
           new(profile).view(**params)
@@ -20,7 +22,7 @@ module AppProfiler
         id = Middleware.id(@profile.file)
 
         if response && response[0].to_i < 500
-          response[1]["Location"] = "/app_profiler/speedscope/viewer/#{id}"
+          response[1]["Location"] = "/app_profiler/#{NAME}/viewer/#{id}"
           response[0] = 303
         else
           AppProfiler.logger.info("[Profiler] Profile available at /app_profiler/#{id}\n")
