@@ -27,17 +27,17 @@ module AppProfiler
       def fetch_firefox_profiler
         raise ArgumentError unless AppProfiler.gecko_viewer_package.start_with?("https://github.com")
 
-        Dir.mktmpdir do |dir|
-          Dir.chdir(dir) do
-            system("git", "clone", AppProfiler.gecko_viewer_package.to_s, "firefox-profiler")
-            package_contents = File.read("firefox-profiler/package.json")
-            package_json = JSON.parse(package_contents)
-            package_json["name"] ||= "firefox-profiler"
-            package_json["version"] ||= "0.0.1"
-            File.write("firefox-profiler/package.json", package_json.to_json)
-          end
-          yarn("add", "#{dir}/firefox-profiler")
+        dir = "./tmp"
+        FileUtils.mkdir_p(dir)
+        Dir.chdir(dir) do
+          system("git", "clone", AppProfiler.gecko_viewer_package.to_s, "firefox-profiler")
+          package_contents = File.read("firefox-profiler/package.json")
+          package_json = JSON.parse(package_contents)
+          package_json["name"] ||= "firefox-profiler"
+          package_json["version"] ||= "0.0.1"
+          File.write("firefox-profiler/package.json", package_json.to_json)
         end
+        yarn("add", "#{dir}/firefox-profiler")
       end
 
       def patch_firefox_profiler
