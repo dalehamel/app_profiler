@@ -4,9 +4,8 @@ require "rack"
 
 module AppProfiler
   class Parameters
-    DEFAULT_INTERVALS = { "cpu" => 1000, "wall" => 1000, "object" => 2000 }.freeze
-    MIN_INTERVALS = { "cpu" => 200, "wall" => 200, "object" => 400 }.freeze
-    MODES = DEFAULT_INTERVALS.keys.freeze
+    DEFAULT_INTERVALS = { "cpu" => 1000, "wall" => 1000, "object" => 2000, "retained" => 0 }.freeze
+    MIN_INTERVALS = { "cpu" => 200, "wall" => 200, "object" => 400, "retained" => 0 }.freeze
 
     attr_reader :autoredirect, :async, :backend
 

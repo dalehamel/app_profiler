@@ -20,12 +20,25 @@ module AppProfiler
       end
     end
 
-    AppProfiler::Parameters::MODES.each do |mode|
-      test "profile mode #{mode} is supported" do
+    AppProfiler::StackprofBackend::AVAILABLE_MODES.each do |mode|
+      test "profile mode #{mode} is supported by stackprof backend" do
         assert_profiles_dumped do
           assert_profiles_uploaded do
             middleware = AppProfiler::Middleware.new(app_env)
             middleware.call(mock_request_env(path: "/?profile=#{mode}"))
+          end
+        end
+      end
+    end
+
+    if defined?(AppProfiler::VernierBackend)
+      AppProfiler::VernierBackend::AVAILABLE_MODES.each do |mode|
+        test "profile mode #{mode} is supported by vernier backend" do
+          assert_profiles_dumped do
+            assert_profiles_uploaded do
+              middleware = AppProfiler::Middleware.new(app_env)
+              middleware.call(mock_request_env(path: "/?profile=#{mode}&backend=vernier"))
+            end
           end
         end
       end
@@ -145,13 +158,27 @@ module AppProfiler
       end
     end
 
-    AppProfiler::Parameters::MODES.each do |mode|
+    AppProfiler::StackprofBackend::AVAILABLE_MODES.each do |mode|
       test "profile mode #{mode} through headers is supported" do
         assert_profiles_dumped do
           assert_profiles_uploaded do
             middleware = AppProfiler::Middleware.new(app_env)
             opt = { AppProfiler.request_profile_header => "mode=#{mode}" }
             middleware.call(mock_request_env(opt: opt))
+          end
+        end
+      end
+    end
+
+    if defined?(AppProfiler::VernierBackend)
+      AppProfiler::VernierBackend::AVAILABLE_MODES.each do |mode|
+        test "profile mode #{mode} is supported through headers by vernier backend" do
+          assert_profiles_dumped do
+            assert_profiles_uploaded do
+              middleware = AppProfiler::Middleware.new(app_env)
+              opt = { AppProfiler.request_profile_header => "mode=#{mode};backend=vernier" }
+              middleware.call(mock_request_env(opt: opt))
+            end
           end
         end
       end

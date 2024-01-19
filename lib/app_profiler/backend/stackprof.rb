@@ -4,10 +4,17 @@ require "stackprof"
 
 module AppProfiler
   class StackprofBackend < Backend
+    NAME = "stackprof"
     DEFAULTS = {
       mode: :cpu,
       raw: true,
     }.freeze
+
+    AVAILABLE_MODES = [
+      :wall,
+      :cpu,
+      :object,
+    ].freeze
 
     def run(params = {})
       started = start(params)

@@ -26,20 +26,19 @@ module AppProfiler
         return false
       end
 
-      return false if backend == "vernier" && !defined?(AppProfiler::VernierBackend)
+      return false if backend == AppProfiler::VernierBackend::NAME && !defined?(AppProfiler::VernierBackend)
 
-      # FIXME: this is very lazy validation for vernier
-      if backend == "vernier" &&
-          AppProfiler::VernierBackend::AVAILABLE_MODES.include?(mode.to_sym)
-        return true
-      end
-
-      unless Parameters::MODES.include?(mode) # TODO: check specific backend supports mode
-        AppProfiler.logger.info("[AppProfiler] unsupported profiling mode=#{mode}")
+      if backend == AppProfiler::VernierBackend::NAME &&
+          !AppProfiler::VernierBackend::AVAILABLE_MODES.include?(mode.to_sym)
+        AppProfiler.logger.info("[AppProfiler] unsupported profiling mode=#{mode} for backend #{backend}")
+        return false
+      elsif backend == AppProfiler::StackprofBackend::NAME &&
+          !AppProfiler::StackprofBackend::AVAILABLE_MODES.include?(mode.to_sym)
+        AppProfiler.logger.info("[AppProfiler] unsupported profiling mode=#{mode} for backend #{backend}")
         return false
       end
 
-      if interval.to_i < Parameters::MIN_INTERVALS[mode]
+      if interval.to_i < Parameters::MIN_INTERVALS[mode.to_s]
         return false
       end
 
@@ -69,7 +68,7 @@ module AppProfiler
     end
 
     def interval
-      query_param("interval") || profile_header_param("interval") || Parameters::DEFAULT_INTERVALS[mode]
+      query_param("interval") || profile_header_param("interval") || Parameters::DEFAULT_INTERVALS[mode.to_s]
     end
 
     def request_id

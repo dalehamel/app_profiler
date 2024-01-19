@@ -34,15 +34,14 @@ module AppProfiler
       return yield unless before_profile(env, params_hash)
 
       @backend_lock.synchronize do
-        AppProfiler.clear
         if params.backend && AppProfiler.profiler_backend.name.split("::").last.downcase.gsub("backend",
           "") != params.backend
           raise ArgumentError if AppProfiler.running?
 
           orig_backend = AppProfiler.profiler_backend
-          if params.backend == "vernier"
+          if params.backend == AppProfiler::VernierBackend::NAME
             AppProfiler.profiler_backend = AppProfiler::VernierBackend
-          elsif params.backend == "stackprof"
+          elsif params.backend == AppProfiler::StackprofBackend::NAME
             AppProfiler.profiler_backend = AppProfiler::StackprofBackend
           else
             raise ArgumentError

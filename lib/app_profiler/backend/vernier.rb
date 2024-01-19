@@ -11,6 +11,8 @@ end
 
 module AppProfiler
   class VernierBackend < Backend
+    NAME = "vernier"
+
     DEFAULTS = {
       mode: :wall,
     }.freeze
