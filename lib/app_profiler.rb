@@ -25,15 +25,15 @@ module AppProfiler
 
   module Viewer
     autoload :BaseViewer, "app_profiler/viewer/base_viewer"
-    autoload :SpeedscopeViewer, "app_profiler/viewer/speedscope_viewer"
-    autoload :SpeedscopeRemoteViewer, "app_profiler/viewer/speedscope_remote_viewer"
+    autoload :SpeedscopeViewer, "app_profiler/viewer/speedscope"
+    autoload :FirefoxViewer, "app_profiler/viewer/firefox"
   end
 
   require "app_profiler/middleware"
   require "app_profiler/parameters"
   require "app_profiler/request_parameters"
-  require "app_profiler/profiler"
   require "app_profiler/profile"
+  require "app_profiler/backend"
   require "app_profiler/server"
 
   mattr_accessor :logger, default: Logger.new($stdout)
@@ -47,9 +47,10 @@ module AppProfiler
   mattr_accessor :context, default: nil
   mattr_reader   :profile_url_formatter,
     default: DefaultProfileFormatter
+  mattr_accessor :profiler_backend, default: AppProfiler::StackprofBackend
 
+  mattr_accessor :gecko_viewer_package, default: "https://github.com/firefox-devtools/profiler"
   mattr_accessor :storage, default: Storage::FileStorage
-  mattr_accessor :viewer, default: Viewer::SpeedscopeViewer
   mattr_accessor :middleware, default: Middleware
   mattr_accessor :server, default: Server
   mattr_accessor :upload_queue_max_length, default: 10
@@ -61,16 +62,35 @@ module AppProfiler
 
   class << self
     def run(*args, &block)
-      Profiler.run(*args, &block)
+      profiler.run(*args, &block)
     end
 
     def start(*args)
-      Profiler.start(*args)
+      profiler.start(*args)
     end
 
     def stop
-      Profiler.stop
-      Profiler.results
+      profiler.stop
+      profiler.results
+    end
+
+    def running?
+      @backend&.running?
+    end
+
+    def profiler
+      if @backend && !@backend.is_a?(profiler_backend)
+        raise ConfigurationError if @backend.running?
+
+        clear
+      end
+
+      @backend ||= profiler_backend.new
+    end
+
+    def clear
+      @backend.stop if @backend&.running?
+      @backend = nil
     end
 
     def profile_header=(profile_header)
