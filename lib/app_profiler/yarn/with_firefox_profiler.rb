@@ -21,10 +21,14 @@ module AppProfiler
       def fetch_firefox_profiler
         raise ArgumentError unless AppProfiler.gecko_viewer_package.start_with?("https://github.com")
 
+        repo, branch = AppProfiler.gecko_viewer_package.to_s.split("#")
+
         dir = "./tmp"
         FileUtils.mkdir_p(dir)
         Dir.chdir(dir) do
-          system("git", "clone", AppProfiler.gecko_viewer_package.to_s, "firefox-profiler")
+          clone_args = ["git", "clone", repo, "firefox-profiler"]
+          clone_args.push("--branch=#{branch}") unless branch.nil? || branch&.empty?
+          system(*clone_args)
           package_contents = File.read("firefox-profiler/package.json")
           package_json = JSON.parse(package_contents)
           package_json["name"] ||= "firefox-profiler"
