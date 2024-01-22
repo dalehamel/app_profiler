@@ -74,17 +74,6 @@ module AppProfiler
       assert_equal("bar", profile.context)
     end
 
-    test ".run cpu profile" do
-      skip "on-CPU mode not yet supported by vernier" # https://github.com/jhawthorn/vernier/issues/29
-      profile = AppProfiler.profiler.run(vernier_params(mode: :cpu, interval: 2000)) do
-        sleep(0.1)
-      end
-
-      assert_instance_of(AppProfiler::VernierProfile, profile)
-      assert_equal(:cpu, profile[:mode])
-      assert_equal(2000, profile[:interval])
-    end
-
     test ".run wall profile" do
       profile = AppProfiler.profiler.run(vernier_params(mode: :wall, interval: 2000)) do
         sleep(0.1)
@@ -93,17 +82,6 @@ module AppProfiler
       assert_instance_of(AppProfiler::VernierProfile, profile)
       assert_equal(:wall, profile[:mode])
       # assert_equal(2000, profile[:interval]) # TODO as above
-    end
-
-    test ".run object profile" do
-      skip "object allocation mode not yet supported by vernier"
-      profile = AppProfiler.profiler.run(vernier_params(mode: :object, interval: 2)) do
-        sleep(0.1)
-      end
-
-      assert_instance_of(AppProfiler::VernierProfile, profile)
-      assert_equal(:object, profile[:mode])
-      assert_equal(2, profile[:interval])
     end
 
     test ".run retained profile" do
@@ -170,18 +148,6 @@ module AppProfiler
       assert_equal("bar", profile.context)
     end
 
-    test ".start cpu profile" do
-      skip "on-CPU mode not yet supported by vernier" # https://github.com/jhawthorn/vernier/issues/29
-      AppProfiler.profiler.start(stackprof_profile(mode: :cpu, interval: 2000))
-      AppProfiler.profiler.stop
-
-      profile = AppProfiler.profiler.results
-
-      assert_instance_of(AppProfiler::VernierProfile, profile)
-      assert_equal(:cpu, profile[:mode])
-      assert_equal(2000, profile[:interval])
-    end
-
     test ".start wall profile" do
       AppProfiler.profiler.start(vernier_params(mode: :wall, interval: 2000))
       AppProfiler.profiler.stop
@@ -193,23 +159,14 @@ module AppProfiler
       # assert_equal(2000, profile[:interval])
     end
 
-    test ".start object profile" do
-      skip "object allocation mode not yet supported by vernier"
-      AppProfiler.profiler.start(vernier_params(mode: :object, interval: 2))
-      AppProfiler.profiler.stop
-
-      profile = AppProfiler.profiler.results
-
-      assert_instance_of(AppProfiler::VernierProfile, profile)
-      assert_equal(:object, profile[:mode])
-      assert_equal(2, profile[:interval])
+    test ".stop" do
+      AppProfiler.start
+      AppProfiler::VernierBackend.any_instance.expects(:stop)
+      AppProfiler.stop
+    ensure
+      AppProfiler::VernierBackend.any_instance.unstub(:stop)
+      AppProfiler.stop
     end
-
-    # test ".stop" do
-    #  AppProfiler.start
-    #  Vernier::Collector.any_instance.expects(:stop)
-    #  AppProfiler.stop
-    # end
 
     test ".results prints error when failed" do
       AppProfiler.profiler.expects(:backend_results).returns({})
