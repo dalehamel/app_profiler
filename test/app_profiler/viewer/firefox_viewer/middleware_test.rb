@@ -88,13 +88,11 @@ module AppProfiler
           File.expects(:write).with("node_modules/firefox-profiler/dist/index.html", "").returns(true)
           @app.call({ "PATH_INFO" => "/app_profiler/firefox/viewer/index.html" })
 
-          assert_predicate(Yarn::Command, :yarn_setup)
-        ensure
-          Yarn::Command.yarn_setup = false
+          assert_predicate(@app, :yarn_setup)
         end
 
         test "#call viewer" do
-          with_yarn_setup do
+          with_yarn_setup(@app) do
             @app.expects(:firefox_profiler).returns(proc { [200, { "Content-Type" => "text/plain" }, ["Firefox"]] })
 
             response = @app.call({ "PATH_INFO" => "/app_profiler/firefox/viewer/index.html" })

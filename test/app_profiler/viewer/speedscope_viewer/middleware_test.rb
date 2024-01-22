@@ -73,13 +73,11 @@ module AppProfiler
 
           @app.call({ "PATH_INFO" => "/app_profiler/speedscope/viewer/index.html" })
 
-          assert_predicate(Yarn::Command, :yarn_setup)
-        ensure
-          Yarn::Command.yarn_setup = false
+          assert_predicate(@app, :yarn_setup)
         end
 
         test "#call viewer" do
-          with_yarn_setup do
+          with_yarn_setup(@app) do
             @app.expects(:speedscope).returns(proc { [200, { "Content-Type" => "text/plain" }, ["Speedscope"]] })
 
             response = @app.call({ "PATH_INFO" => "/app_profiler/speedscope/viewer/index.html" })

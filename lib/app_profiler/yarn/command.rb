@@ -19,7 +19,6 @@ module AppProfiler
 
       private_constant(:VALID_COMMANDS)
       private_constant(:GECKO_VIEWER_PACKAGE)
-      mattr_accessor(:yarn_setup, default: false)
 
       def yarn(command, *options)
         setup_yarn unless yarn_setup
@@ -33,6 +32,10 @@ module AppProfiler
         ensure_yarn_installed
 
         yarn("init", "--yes") unless package_json_exists?
+      end
+
+      def yarn_setup
+        @yarn_initialized || false
       end
 
       private
@@ -61,7 +64,7 @@ module AppProfiler
             MSG
           )
         end
-        self.yarn_setup = true
+        @yarn_initialized = true
       end
 
       def package_json_exists?
