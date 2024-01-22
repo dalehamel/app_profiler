@@ -73,19 +73,22 @@ module AppProfiler
           File.expects(:read).returns("{}")
           File.expects(:write).returns(true)
 
-          @app.expects(:system).with("yarn", "add", regexp_matches(/.*firefox-profiler$/)).returns(true)
-          @app.expects(:system).with("yarn", "--cwd", "node_modules/firefox-profiler").returns(true)
+          dir = "./tmp"
 
-          File.expects(:read).with("node_modules/firefox-profiler/webpack.config.js").returns("")
-          File.expects(:write).with("node_modules/firefox-profiler/webpack.config.js", "").returns(true)
+          @app.expects(:system).with("yarn", "--cwd", "#{dir}/firefox-profiler").returns(true)
 
-          File.expects(:read).with("node_modules/firefox-profiler/src/app-logic/l10n.js").returns("")
-          File.expects(:write).with("node_modules/firefox-profiler/src/app-logic/l10n.js", "").returns(true)
+          File.expects(:read).with("#{dir}/firefox-profiler/webpack.config.js").returns("")
+          File.expects(:write).with("#{dir}/firefox-profiler/webpack.config.js", "").returns(true)
 
-          @app.expects(:system).with("yarn", "--cwd", "node_modules/firefox-profiler", "build-prod").returns(true)
+          File.expects(:read).with("#{dir}/firefox-profiler/src/app-logic/l10n.js").returns("")
+          File.expects(:write).with("#{dir}/firefox-profiler/src/app-logic/l10n.js", "").returns(true)
 
-          File.expects(:read).with("node_modules/firefox-profiler/dist/index.html").returns("")
-          File.expects(:write).with("node_modules/firefox-profiler/dist/index.html", "").returns(true)
+          @app.expects(:system).with("yarn", "--cwd", "#{dir}/firefox-profiler", "build-prod").returns(true)
+
+          File.expects(:read).with("#{dir}/firefox-profiler/dist/index.html").returns("")
+          File.expects(:write).with("#{dir}/firefox-profiler/dist/index.html", "").returns(true)
+
+          @app.expects(:system).with("yarn", "add", "--dev", "#{dir}/firefox-profiler").returns(true)
           @app.call({ "PATH_INFO" => "/app_profiler/firefox/viewer/index.html" })
 
           assert_predicate(@app, :yarn_setup)
