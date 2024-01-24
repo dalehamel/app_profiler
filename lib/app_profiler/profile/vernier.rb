@@ -38,7 +38,7 @@ module AppProfiler
     end
 
     def view(params = {})
-      raise NotImplementedError
+      Viewer::FirefoxViewer.view(self, **params)
     end
   end
 end
