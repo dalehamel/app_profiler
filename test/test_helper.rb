@@ -37,6 +37,28 @@ AppProfiler.tap do |config|
   config.profile_root = TMP_ROOT
 end
 
+module Vernier
+  class FakeResult
+    attr_accessor :meta, :data
+
+    def initialize(data)
+      @meta = data.delete(:metadata) || {}
+      @data = data
+    end
+
+    def to_h
+      {
+        meta: @meta,
+        data: @data,
+      }
+    end
+
+    def write(out:)
+      File.write(out, JSON.dump(to_h))
+    end
+  end
+end
+
 module AppProfiler
   class Dummy < Rails::Application; end
 
@@ -53,12 +75,20 @@ module AppProfiler
       { mode: :cpu, interval: 1000, frames: [], metadata: { id: "foo" } }.merge(params)
     end
 
-    def with_yarn_setup
-      old_yarn_setup = Yarn::Command.yarn_setup
-      Yarn::Command.yarn_setup = true
+    def vernier_profile(params = {})
+      ::Vernier::FakeResult.new(params)
+    end
+
+    def vernier_params(params = {})
+      { mode: :wall, interval: 1000, metadata: { id: "foo" } }.merge(params)
+    end
+
+    def with_yarn_setup(app)
+      old_yarn_setup = app.yarn_setup
+      app.instance_variable_set(:@yarn_initialized, true)
       yield
     ensure
-      Yarn::Command.yarn_setup = old_yarn_setup
+      app.instance_variable_set(:@yarn_initialized, old_yarn_setup)
     end
   end
 end

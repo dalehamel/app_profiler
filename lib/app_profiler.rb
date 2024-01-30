@@ -9,6 +9,9 @@ module AppProfiler
   class ConfigurationError < StandardError
   end
 
+  class BackendError < StandardError
+  end
+
   DefaultProfileFormatter = proc do |upload|
     "#{AppProfiler.speedscope_host}#profileURL=#{upload.url}"
   end
@@ -25,15 +28,15 @@ module AppProfiler
 
   module Viewer
     autoload :BaseViewer, "app_profiler/viewer/base_viewer"
-    autoload :SpeedscopeViewer, "app_profiler/viewer/speedscope_viewer"
-    autoload :SpeedscopeRemoteViewer, "app_profiler/viewer/speedscope_remote_viewer"
+    autoload :SpeedscopeViewer, "app_profiler/viewer/speedscope"
+    autoload :FirefoxViewer, "app_profiler/viewer/firefox"
   end
 
   require "app_profiler/middleware"
   require "app_profiler/parameters"
   require "app_profiler/request_parameters"
-  require "app_profiler/profiler"
   require "app_profiler/profile"
+  require "app_profiler/backend"
   require "app_profiler/server"
 
   mattr_accessor :logger, default: Logger.new($stdout)
@@ -48,8 +51,8 @@ module AppProfiler
   mattr_reader   :profile_url_formatter,
     default: DefaultProfileFormatter
 
+  mattr_accessor :gecko_viewer_package, default: "https://github.com/firefox-devtools/profiler"
   mattr_accessor :storage, default: Storage::FileStorage
-  mattr_accessor :viewer, default: Viewer::SpeedscopeViewer
   mattr_accessor :middleware, default: Middleware
   mattr_accessor :server, default: Server
   mattr_accessor :upload_queue_max_length, default: 10
@@ -60,17 +63,75 @@ module AppProfiler
   mattr_reader :after_process_queue, default: nil
 
   class << self
-    def run(*args, &block)
-      Profiler.run(*args, &block)
+    def run(*args, with_backend: nil, **kwargs, &block)
+      yield unless acquire_run_lock
+      orig_backend = backend
+      begin
+        self.backend = with_backend if with_backend
+        profiler.run(*args, **kwargs, &block)
+      rescue BackendError
+        yield
+      end
+    ensure
+      AppProfiler.backend = orig_backend
+      release_run_lock
     end
 
     def start(*args)
-      Profiler.start(*args)
+      profiler.start(*args)
     end
 
     def stop
-      Profiler.stop
-      Profiler.results
+      profiler.stop
+      profiler.results
+    end
+
+    def running?
+      @backend&.running?
+    end
+
+    def profiler
+      @backend ||= backend.new
+    end
+
+    def backend=(new_backend)
+      new_profiler_backend = if new_backend.is_a?(String)
+        backend_for(new_backend)
+      elsif new_backend&.< Backend
+        new_backend
+      else
+        raise BackendError, "unsupportend backend type #{new_backend.class}"
+      end
+
+      if running?
+        raise BackendError,
+          "cannot change backend to #{new_backend::NAME} while #{backend::NAME} backend is running"
+      end
+
+      return if @profiler_backend == new_backend
+
+      clear
+      @profiler_backend = new_profiler_backend
+    end
+
+    def backend_for(backend_name)
+      if defined?(AppProfiler::VernierBackend) &&
+          backend_name == AppProfiler::VernierBackend::NAME
+        AppProfiler::VernierBackend
+      elsif backend_name == AppProfiler::StackprofBackend::NAME
+        AppProfiler::StackprofBackend
+      else
+        raise BackendError, "unknown backend #{backend_name}"
+      end
+    end
+
+    def backend
+      @profiler_backend ||= DefaultBackend
+    end
+
+    def clear
+      @backend.stop if @backend&.running?
+      @backend = nil
     end
 
     def profile_header=(profile_header)
@@ -119,6 +180,22 @@ module AppProfiler
       return unless AppProfiler.profile_url_formatter
 
       AppProfiler.profile_url_formatter.call(upload)
+    end
+
+    private
+
+    def acquire_run_lock
+      run_lock.try_lock
+    end
+
+    def release_run_lock
+      run_lock.unlock
+    rescue ThreadError
+      logger.warn("[AppProfiler] run lock not released as it was never acquired")
+    end
+
+    def run_lock
+      @run_lock ||= Mutex.new
     end
   end
 
